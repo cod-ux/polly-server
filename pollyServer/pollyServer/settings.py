@@ -28,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-secrets = toml.load(os.path.join(BASE_DIR, "secrets.toml"))
+secrets = toml.load(os.path.join(BASE_DIR, "app", "config", "secrets.toml"))
 # Application definition
 
 INSTALLED_APPS = [
