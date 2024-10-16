@@ -1,5 +1,5 @@
 # Polly - Policy Researcher Agent
-A policy research agent that uses research papers and web search to answer questions on UK policy reform. This repo is the django server in the backend of the application.
+A policy research agent that uses research papers with RAG and web search to answer questions on UK policy reform. This repo is the django server in the backend of the application.
 
 ## Use Cases
 1. Find relevant info from past research & online content
