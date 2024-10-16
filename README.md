@@ -1,2 +1,2 @@
-# Polly - Agentic expert in UK Policy Reform
+# Polly - Policy Researcher Agent
 Backend for RAG chabot in Langchain and Django
