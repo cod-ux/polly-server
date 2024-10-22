@@ -27,10 +27,15 @@ pages = []
 
 async def load_pdfs():
     for pdf_path in os.listdir(folder_path):
-        loader = PyPDFLoader(os.path.join(BASE_DIR, "docs", pdf_path))
+        if pdf_path[-4:] == ".pdf":
+            print("Name of pdf: ", pdf_path)
+            loader = PyPDFLoader(os.path.join(BASE_DIR, "docs", pdf_path))
 
-        async for page in loader.alazy_load():
-            pages.append(page)
+            async for page in loader.alazy_load():
+                pages.append(page)
+
+        else:
+            pass
 
     print("No. of source pages: ", len(pages))
 
