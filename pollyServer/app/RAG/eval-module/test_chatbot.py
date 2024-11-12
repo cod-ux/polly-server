@@ -5,7 +5,7 @@ import pandas as pd
 from datasets import Dataset
 
 from langchain_chroma import Chroma
-from langchain_openai import OpenAIEmbeddings
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from phoenix.otel import register
 
 from ragas.metrics import (
@@ -18,7 +18,7 @@ from ragas import evaluate
 from ragas import EvaluationDataset
 from ragas.llms import LangchainLLMWrapper
 from ragas.embeddings import LangchainEmbeddingsWrapper
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+
 
 import streamlit as st
 
@@ -38,11 +38,7 @@ embeddings = OpenAIEmbeddings(model=embedding_model, api_key=API_KEY)
 
 client = OpenAI(api_key=API_KEY)
 
-chroma_dir = os.path.join(BASE_DIR, "chroma_db")
-
-# Initiate streamlit
-st.title("💬 Chatbot Eval")
-ph = st.empty()
+chroma_dir = os.path.join(BASE_DIR, "..", "chroma_db")
 
 # Prepare vector store
 vector_store = Chroma(
@@ -103,16 +99,16 @@ def generate_response(question):
 
 
 def build_eval_ds(queries_df, evals_df):
-    st.write("Building evaluation dataset...")
+    print("Building evaluation dataset...")
     questions = []
     answers = []
     contexts = []
     ground_truth = []
-    for index, row in queries_df.head(5).iterrows():
-        ph.code(f"Working on Question: {index}/{len(queries_df)}")
+    for index, row in queries_df.head(3).iterrows():
+        length = len(queries_df.head(3))
+        print(f"Working on question: {index+1}/{length}")
         questions.append(row["Queries"])
         ground_truth.append(row["Ground truth"])
-
         answer, context = generate_response(row["Queries"])
         answers.append(answer)
         contexts.append(context)
@@ -127,7 +123,7 @@ def build_eval_ds(queries_df, evals_df):
 
 
 def run_eval(df, llm=evaluator_llm, emd=evaluator_embeddings):
-    st.write("Running evaluation...")
+    print("Running evaluation...")
     metrics = [
         LLMContextRecall(llm=llm),
         FactualCorrectness(llm=llm),
@@ -147,20 +143,26 @@ query_df = pd.read_excel(queries_path)
 response_ds = build_eval_ds(queries_df=query_df, evals_df=eval_df)
 eval_results = run_eval(response_ds)
 
-st.dataframe(eval_results)
-filename = st.text_input("Save table as: ")
-if st.button("Save"):
+filename = input("Save table as: ")
+
+Saved = False
+while not Saved:
     if filename:
+        print("Filename exists...")
         if not os.path.exists(
             os.path.join(output_folder, "output", f"{filename}.xlsx")
         ):
+            print("Filename is valid...")
             eval_results.to_excel(
-                os.path.join(output_folder, "output", f"{filename}.xlsx"), index=False
+                os.path.join(output_folder, "output", f"{filename}.xlsx"),
+                index=False,
             )
-            st.success(f"Save {filename}.xlsx successfully")
+            print("Saved file...")
+            print(f"Save {filename}.xlsx successfully")
+            Saved = True
 
         else:
-            st.error("File already exists")
+            print("File already exists")
 
     else:
-        st.error("Please enter a valid name to save the file.")
+        print("Please enter a valid name to save the file.")
