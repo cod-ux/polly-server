@@ -1,4 +1,4 @@
 *.toml
 .venv/
-.polly-server/pollyServer/app/RAG/eval-ds/output/
-.polly-server/pollyServer/app/RAG/eval-module/chroma_db/
+./pollyServer/app/RAG/eval-ds/output/
+./pollyServer/app/RAG/eval-module/chroma_db/
