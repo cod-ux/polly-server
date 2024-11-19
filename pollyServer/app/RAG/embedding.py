@@ -4,10 +4,13 @@ import toml
 import os
 from openai import OpenAI
 import asyncio
+from docx import Document
+import docx2txt2 as docx2txt
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 BASE_DIR = os.path.dirname(
     os.path.abspath(__file__)
@@ -42,9 +45,34 @@ async def load_pdfs():
 
 asyncio.run(load_pdfs())
 
+# Create source docx
+print("Loading Document class")
+document = Document()
+
+for page in pages:
+    print(f"Adding page: {page.metadata}")
+    document.add_paragraph(page.page_content)
+
+print("Iteration complete")
+document_path = os.path.join(BASE_DIR, "docs", "source.docx")
+document.save(document_path)
+
+# Text splitting method
+source = docx2txt.extract_text(document_path)
+
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=2000,
+    chunk_overlap=200,
+    length_function=len,
+    is_separator_regex=False,
+)
+
+chunks = text_splitter.create_documents([source])
+print(f"Length of chuks: {len(chunks)}")
+
 # Create a Vectorstore
 chroma_db = Chroma.from_documents(
-    documents=pages,
+    documents=chunks,
     embedding=embeddings,
     persist_directory=os.path.join(BASE_DIR, "chroma_db"),
     collection_name="polly-rag",
