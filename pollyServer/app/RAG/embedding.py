@@ -45,6 +45,18 @@ async def load_pdfs():
 
 asyncio.run(load_pdfs())
 
+# Create source
+
+source = []
+
+for page in pages:
+    og_content = page.page_content
+    book_name = os.path.basename(page.meta_data.source)
+
+    new_content = "Source name: " + book_name + "\n\n" + og_content
+
+    source.append(new_content)
+
 # Create source docx
 print("Loading Document class")
 document = Document()
