@@ -20,7 +20,7 @@ embeddings = OpenAIEmbeddings(model=embedding_model, api_key=API_KEY)
 
 client = OpenAI(api_key=API_KEY)
 
-chroma_dir = os.path.join(BASE_DIR, "chroma_db")
+chroma_dir = os.path.join(BASE_DIR, "chroma")
 
 vector_store = Chroma(
     persist_directory=chroma_dir,

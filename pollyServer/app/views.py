@@ -5,11 +5,22 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from openai import OpenAI
 from django.conf import settings
+import os
 
 from app.RAG.rag import query_db
 
+BASE_DIR = os.path.dirname(__file__)
+
+prompt_folder = os.path.join(BASE_DIR, "RAG", "prompts")
+
 # Initialize OpenAI client
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
+with open(os.path.join(prompt_folder, "system.md"), "r", encoding="utf-8") as file:
+    system_prompt = file.read()
+
+with open(os.path.join(prompt_folder, "user.md"), "r", encoding="utf-8") as file:
+    user_prompt = file.read()
 
 
 @csrf_exempt  # Enabled Cross Origin for development
@@ -27,17 +38,18 @@ def chat(request):
 
             context = "\n".join([page.page_content for page in response])
             # Call OpenAI API
+
             response = (
                 client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
                         {
                             "role": "system",
-                            "content": f"Use this Content to respond to the user question. Context:\n\n{context}",
+                            "content": system_prompt.format(context=context),
                         },
                         {
                             "role": "user",
-                            "content": f"User Question: {data["message"]}\n\nAnswer:\n",
+                            "content": user_prompt.format(question=data["message"]),
                         },
                     ],
                 )
