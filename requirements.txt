@@ -11,3 +11,4 @@ python-docx>=0.8.11
 docx2txt2>=1.0.0
 langchain-text-splitters>=0.0.1
 djangorestframework
+django-cors-headers
