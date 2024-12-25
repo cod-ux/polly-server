@@ -7,14 +7,11 @@ from openai import OpenAI
 from django.conf import settings
 import os
 
-from app.RAG.rag import query_db
+from app.RAG.rag import query_db, query_model
 
 BASE_DIR = os.path.dirname(__file__)
 
 prompt_folder = os.path.join(BASE_DIR, "RAG", "prompts")
-
-# Initialize OpenAI client
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
 with open(os.path.join(prompt_folder, "system.md"), "r", encoding="utf-8") as file:
     system_prompt = file.read()
@@ -29,34 +26,23 @@ def chat(request):
         try:
             data = json.loads(request.body)
 
-            # Check if the "message" field is present
-            if "message" not in data:
-                return JsonResponse({"error": "Invalid input"}, status=400)
+            # Check if messages array is present and valid
+            if not isinstance(data, list) or len(data) > 5 or len(data) == 0:
+                return JsonResponse({"error": "Invalid input: Expected array of 1-5 messages"}, status=400)
 
-            # Query VectorDB
-            response = query_db(data["message"])
+            # Validate message format
+            for msg in data:
+                if not isinstance(msg, dict) or "sender" not in msg or "msg" not in msg:
+                    return JsonResponse({"error": "Invalid message format"}, status=400)
+                if msg["sender"] not in ["user", "bot"]:
+                    return JsonResponse({"error": "Invalid sender type"}, status=400)
 
-            context = "\n".join([page.page_content for page in response])
-            # Call OpenAI API
+            # Query VectorDB with the last user message
+            last_user_msg = next((msg["msg"] for msg in reversed(data) if msg["sender"] == "user"), None)
+            if not last_user_msg:
+                return JsonResponse({"error": "No user message found"}, status=400)
 
-            response = (
-                client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": system_prompt.format(context=context),
-                        },
-                        {
-                            "role": "user",
-                            "content": user_prompt.format(question=data["message"]),
-                        },
-                    ],
-                )
-                .choices[0]
-                .message.content
-            )
-
+            response = query_model(last_user_msg, data)
             return JsonResponse({"response": response}, status=200)
 
         except json.JSONDecodeError:
