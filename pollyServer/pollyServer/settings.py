@@ -26,7 +26,10 @@ SECRET_KEY = "django-insecure--3_uv6gq+q6a(@valuiz3-)%arrvl9d__ysz8*hb=p45wyb0#$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "127.0.0.1",  # Localhost
+    "31.187.72.163",
+]
 
 secrets = toml.load(os.path.join(BASE_DIR, "app", "config", "secrets.toml"))
 # Application definition
